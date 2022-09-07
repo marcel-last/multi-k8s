@@ -1,0 +1,63 @@
+#cloud-config
+users:
+  - default
+  - name: kubernetes
+    gecos: Kubernetes Administrator
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin
+    shell: /bin/bash
+    ssh_import_id: None
+    lock_passwd: true
+    ssh_authorized_keys:
+      - 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGdMBqVCRQeiR7MjoDIF7wy9gy/ISBReklA6iyIRuroU Marcel Last <marcel.last@finder.com>'
+apt:
+  sources:
+    kubernetes.list:
+      keyid: 836F4BEB
+      source: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+    devel:kubic:libcontainers:stable.list:
+      keyid: 4D64390375060AA4
+      source: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /"
+    devel:kubic:libcontainers:stable:cri-o:1.24.list:
+      keyid: 4D64390375060AA4
+      source: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.24/xUbuntu_20.04/ /"
+package_update: true
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - vim
+  - kubectl
+  - kubelet
+  - kubeadm
+  - cri-o
+  - cri-o-runc
+runcmd:
+  - | # Pin package versions for kubeadm, kubelet, kubectl and install kubectl-convert tool
+    apt-mark hold kubelet kubeadm kubectl cri-o cri-o-runc
+    kubectl completion bash | tee /etc/bash_completion.d/kubectl > /dev/null
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/$(dpkg --print-architecture)/kubectl-convert"
+    install -o root -g root -m 0755 kubectl-convert /usr/local/bin/kubectl-convert
+    rm kubectl-convert
+  - | # Configure container runtime prerequisites
+    cat <<EOF | tee /etc/modules-load.d/k8s.conf
+    overlay
+    br_netfilter
+    EOF
+
+    modprobe overlay
+    modprobe br_netfilter
+
+    cat <<EOF | tee /etc/sysctl.d/k8s.conf
+    net.bridge.bridge-nf-call-iptables  = 1
+    net.bridge.bridge-nf-call-ip6tables = 1
+    net.ipv4.ip_forward                 = 1
+    EOF
+
+    sysctl --system
+  - | # Reload, enable and start daemons
+    systemctl daemon-reload
+    systemctl enable kubelet
+    systemctl start kubelet
+    systemctl enable crio
+    systemctl start crio
