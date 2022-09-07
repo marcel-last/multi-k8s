@@ -39,6 +39,7 @@ runcmd:
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/$(dpkg --print-architecture)/kubectl-convert"
     install -o root -g root -m 0755 kubectl-convert /usr/local/bin/kubectl-convert
     rm kubectl-convert
+    
   - | # Configure container runtime prerequisites
     cat <<EOF | tee /etc/modules-load.d/k8s.conf
     overlay
@@ -55,6 +56,7 @@ runcmd:
     EOF
 
     sysctl --system
+    
   - | # Reload, enable and start daemons
     systemctl daemon-reload
     systemctl enable kubelet
