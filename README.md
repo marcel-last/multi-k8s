@@ -13,7 +13,7 @@ $ bash bootstrap.sh
 
 3. To destroy your Kubernetes cluster and Multipass container environment
 ```bash
-# bash cleanup.sh
+$ bash cleanup.sh
 ```
 
 ## Project Dependencies
