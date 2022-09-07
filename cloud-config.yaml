@@ -9,7 +9,7 @@ users:
     ssh_import_id: None
     lock_passwd: true
     ssh_authorized_keys:
-      - 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGdMBqVCRQeiR7MjoDIF7wy9gy/ISBReklA6iyIRuroU Marcel Last <marcel.last@finder.com>'
+      - <YOUR_SSH_PUBLIC_KEY_HERE>
 apt:
   sources:
     kubernetes.list:
